@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../utils/authentication.dart'; // Import your authentication logic file here
 import 'package:firebase_auth/firebase_auth.dart';
-import '../utils/authentication.dart';
-import 'sign_in_screen.dart'; // Import SignInScreen
+import 'sign_in_screen.dart';
 
 class UserInfoScreen extends StatefulWidget {
   const UserInfoScreen({Key? key, required User user})
@@ -18,6 +18,25 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   late User _user;
   bool _isSigningOut = false;
 
+  Route _routeToSignInScreen() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => SignInScreen(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var begin = Offset(-1.0, 0.0);
+        var end = Offset.zero;
+        var curve = Curves.ease;
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     _user = widget._user;
@@ -28,20 +47,27 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: CustomColors.firebaseNavy,
       appBar: AppBar(
-        title: Text('User Info'),
+        elevation: 0,
+        backgroundColor: CustomColors.firebaseNavy,
+        title: AppBarTitle(),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            bottom: 20.0,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Row(),
               _user.photoURL != null
                   ? ClipOval(
                       child: Material(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: CustomColors.firebaseGrey.withOpacity(0.3),
                         child: Image.network(
                           _user.photoURL!,
                           fit: BoxFit.fitHeight,
@@ -50,13 +76,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     )
                   : ClipOval(
                       child: Material(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: CustomColors.firebaseGrey.withOpacity(0.3),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Icon(
                             Icons.person,
                             size: 60,
-                            color: Colors.grey,
+                            color: CustomColors.firebaseGrey,
                           ),
                         ),
                       ),
@@ -65,7 +91,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               Text(
                 'Hello',
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: CustomColors.firebaseGrey,
                   fontSize: 26,
                 ),
               ),
@@ -73,7 +99,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               Text(
                 _user.displayName!,
                 style: TextStyle(
-                  color: Colors.yellow,
+                  color: CustomColors.firebaseYellow,
                   fontSize: 26,
                 ),
               ),
@@ -81,7 +107,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               Text(
                 '( ${_user.email!} )',
                 style: TextStyle(
-                  color: Colors.orange,
+                  color: CustomColors.firebaseOrange,
                   fontSize: 20,
                   letterSpacing: 0.5,
                 ),
@@ -90,11 +116,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               Text(
                 'You are now signed in using your Google account. To sign out of your account, click the "Sign Out" button below.',
                 style: TextStyle(
-                  color: Colors.grey.withOpacity(0.8),
-                  fontSize: 14,
-                  letterSpacing: 0.2,
-                ),
-                textAlign: TextAlign.center,
+                    color: CustomColors.firebaseGrey.withOpacity(0.8),
+                    fontSize: 14,
+                    letterSpacing: 0.2),
               ),
               SizedBox(height: 16.0),
               _isSigningOut
@@ -103,8 +127,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     )
                   : ElevatedButton(
                       style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.redAccent),
+                        backgroundColor: MaterialStateProperty.all(
+                          Colors.redAccent,
+                        ),
                         shape: MaterialStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -119,16 +144,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                         setState(() {
                           _isSigningOut = false;
                         });
-                        // Navigate back to the sign-in screen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SignInScreen()),
-                        );
+                        Navigator.of(context)
+                            .pushReplacement(_routeToSignInScreen());
                       },
                       child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
                         child: Text(
                           'Sign Out',
                           style: TextStyle(
@@ -143,6 +163,25 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class CustomColors {
+  static const Color firebaseNavy = Color(0xFF123456);
+  static const Color firebaseGrey = Color(0xFFAABBCC);
+  static const Color firebaseYellow = Color(0xFFFFEE00);
+  static const Color firebaseOrange = Color(0xFFFFA500);
+}
+
+class AppBarTitle extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'User Info',
+      style: TextStyle(
+        fontSize: 24.0,
       ),
     );
   }
